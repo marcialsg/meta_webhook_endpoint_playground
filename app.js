@@ -14,37 +14,45 @@ app.get('/', (req, res) => {
     if (mode === 'subscribe' && token === verifyToken) {
         console.log('WEBHOOK VERIFIED');
         res.status(200).send(challenge);
-
-        const groupData = {
-            messaging_product: "whatsapp",
-            subject: "My Node js Generated Group",
-            description: "This group was generated using Node.js",
-            join_approval_mode: "anyone"
-        };
-
-        const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
-        const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
-
-        fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/groups`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${ACCESS_TOKEN}`
-            },
-            body: JSON.stringify(groupData)
-        }).then((response) => {
-
-            console.log('Group POST Response:', response);
-            return response.json()
-
-        })
-            .then(data => console.log('Group POST Response Data:', data))
-            .catch(error => console.error('Error:', error));
-
-
     } else {
         res.status(403).end();
     }
+});
+
+// Route for generating groups
+app.post('/groups', (req, res) => {
+
+    console.log('Group POST Request Data:', req.body);
+
+    const { subject, description, join_approval_mode } = req.body;
+
+    const groupData = {
+        messaging_product: "whatsapp",
+        subject: subject,
+        description: description,
+        join_approval_mode: join_approval_mode
+    };
+
+    const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+    const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+
+    fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/groups`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${ACCESS_TOKEN}`
+        },
+        body: JSON.stringify(groupData)
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Group POST Response Data:', data);
+            res.status(200).json(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            res.status(500).send('Error creating group');
+        });
 });
 
 // Route for POST requests
