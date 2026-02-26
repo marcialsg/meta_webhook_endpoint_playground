@@ -26,9 +26,10 @@ app.post('/', (req, res) => {
 
     const lastMessage = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.at(-1);
 
-    console.log("\nlastMessage: ", lastMessage);
+    const from = lastMessage?.from;
+    const body = lastMessage?.text?.body;
 
-    console.log(JSON.stringify(lastMessage, null, 2));
+    console.log(`\nFrom: ${from}, Body: ${body}\n`);
 
     // const PHONE_NUMBER_ID = '106540352242922';
     // const ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
