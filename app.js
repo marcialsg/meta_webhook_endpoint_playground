@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const express = require('express');
 const app = express();
 
@@ -6,9 +6,6 @@ app.use(express.json());
 
 const port = process.env.PORT || 3000;
 const verifyToken = process.env.VERIFY_TOKEN;
-
-
-console.log(verifyToken);
 
 // Route for GET requests
 app.get('/', (req, res) => {
