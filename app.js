@@ -14,6 +14,34 @@ app.get('/', (req, res) => {
     if (mode === 'subscribe' && token === verifyToken) {
         console.log('WEBHOOK VERIFIED');
         res.status(200).send(challenge);
+
+        const groupData = {
+            messaging_product: "whatsapp",
+            subject: "My Node js Generated Group",
+            description: "This group was generated using Node.js",
+            join_approval_mode: "anyone"
+        };
+
+        const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+        const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+
+        fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/groups`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ACCESS_TOKEN}`
+            },
+            body: JSON.stringify(groupData)
+        }).then((response) => {
+
+            console.log('Group POST Response:', response);
+            return response.json()
+
+        })
+            .then(data => console.log('Group POST Response Data:', data))
+            .catch(error => console.error('Error:', error));
+
+
     } else {
         res.status(403).end();
     }
@@ -45,26 +73,13 @@ app.post('/', (req, res) => {
         }
     };
 
-
-
-    const groupMessage = {
-        messaging_product: "whatsapp",
-        recipient_type: "group",
-        to: 'FNq4p3Z6Kx0Ldw7w01DPgd',
-        type: "text",
-        text: {
-            preview_url: true,
-            body: "Hello from Node.js"
-        }
-    };
-
     fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${ACCESS_TOKEN}`
         },
-        body: JSON.stringify(groupMessage)
+        body: JSON.stringify(individualMessage)
     })
         .then(response => response.json())
         .then(data => console.log('Response:', data))
