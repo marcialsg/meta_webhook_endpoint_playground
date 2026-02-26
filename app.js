@@ -28,8 +28,8 @@ app.post('/', (req, res) => {
 
     const body = lastMessage?.text?.body;
 
-    const PHONE_NUMBER_ID = '1011082392088113';
-    const ACCESS_TOKEN = 'EAAM41SXnDT4BQyxNUOahxFRq6sSE26bxP4Diw0lEtzVPDckZCy1JmiHfA4ygqVqRuT4SFr4KnkOdw2aSTzHRmm7Lf1zFTBkh7r3NDZCG8KXAzVhaFv8KEADkAmS5KxiZAdUZAZALy6PebcLW6cWF6ZAFup6ZBdzANIYzPUD2CqUOxX2uRYuZA7SKIFUUSnDHfZCpVi8djhNfr9wpJkbRpqEEqq8AzdNJnKUSxmIsmUVCUEfNhsyB5ZAQRbMT5OgZCXCJNmDm5pW2OVZCx4VkjyGaFzVK';
+    const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+    const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
     const RECIPIENT_PHONE = lastMessage?.from;
 
     console.log(`\nFrom: ${RECIPIENT_PHONE}, Body: ${body}\n`);
