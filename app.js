@@ -34,22 +34,37 @@ app.post('/', (req, res) => {
 
     console.log(`\nFrom: ${RECIPIENT_PHONE}, Body: ${body}\n`);
 
+    const individualMessage = {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: RECIPIENT_PHONE,
+        type: "text",
+        text: {
+            preview_url: true,
+            body: "Hello from Node.js"
+        }
+    };
+
+
+
+    const groupMessage = {
+        messaging_product: "whatsapp",
+        recipient_type: "group",
+        to: 'FNq4p3Z6Kx0Ldw7w01DPgd',
+        type: "text",
+        text: {
+            preview_url: true,
+            body: "Hello from Node.js"
+        }
+    };
+
     fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${ACCESS_TOKEN}`
         },
-        body: JSON.stringify({
-            messaging_product: "whatsapp",
-            recipient_type: "individual",
-            to: RECIPIENT_PHONE,
-            type: "text",
-            text: {
-                preview_url: true,
-                body: "Hello from Node.js"
-            }
-        })
+        body: JSON.stringify(groupMessage)
     })
         .then(response => response.json())
         .then(data => console.log('Response:', data))
