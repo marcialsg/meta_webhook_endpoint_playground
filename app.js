@@ -121,6 +121,59 @@ app.post('/', (req, res) => {
     res.status(200).end();
 });
 
+app.post('/send-markdown-message', (req, res) => {
+    const { title, content, recipient } = req.body; // Added 'recipient' for flexibility
+
+    if (!title || !content || !recipient) {
+        return res.status(400).json({ error: 'Missing title, content, or recipient in request body.' });
+    }
+
+    const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+    const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+
+    // Construct the Markdown message
+    const markdownBody = `*${title}*\n\n${content}`; // Title in bold, then two newlines for a blank line, then content
+
+    const messagePayload = {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: recipient, // Use the recipient phone number passed in the request
+        type: "text",
+        text: {
+            preview_url: true, // Set to false if you don't want URL previews
+            body: markdownBody
+        }
+    };
+
+    console.log(`Attempting to send message to ${recipient} with title: "${title}"`);
+
+    fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${ACCESS_TOKEN}`
+        },
+        body: JSON.stringify(messagePayload)
+    })
+        .then(response => {
+            if (!response.ok) {
+                // Read the error response body for more details
+                return response.text().then(text => {
+                    throw new Error(`WhatsApp API error! Status: ${response.status}, Message: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Message sent successfully via /send-markdown-message:', data);
+            res.status(200).json({ message: 'Message sent successfully', data });
+        })
+        .catch(error => {
+            console.error('Error sending message via /send-markdown-message:', error.message);
+            res.status(500).json({ error: 'Failed to send message', details: error.message });
+        });
+});
+
 // Start the server
 app.listen(port, () => {
     console.log(`\nListening on port ${port}\n`);
