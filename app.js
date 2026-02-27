@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const app = express();
 
@@ -7,7 +7,7 @@ app.use(express.json());
 const port = process.env.PORT || 3000;
 const verifyToken = process.env.VERIFY_TOKEN;
 
-// Route for GET requests
+// Route for GET requests (unchanged)
 app.get('/', (req, res) => {
     const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
 
@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
     }
 });
 
-// Route for generating groups
+// Route for generating groups (unchanged)
 app.post('/groups', (req, res) => {
 
     console.log('Group POST Request Data:', req.body);
@@ -55,14 +55,15 @@ app.post('/groups', (req, res) => {
         });
 });
 
-// Route for POST requests
+// Route for POST requests (Modified to send Markdown-formatted text)
 app.post('/', (req, res) => {
     const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
     console.log(`\n\nWebhook received ${timestamp}\n`);
 
     const lastMessage = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.at(-1);
 
-    const body = lastMessage?.text?.body;
+    const body = lastMessage?.text?.body; // The user's message body
+    const RECIPIENT_NAME = req.body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name || "there"; // Attempt to get recipient's name
 
     const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
     const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
@@ -70,16 +71,32 @@ app.post('/', (req, res) => {
 
     console.log(`\nFrom: ${RECIPIENT_PHONE}, Body: ${body}\n`);
 
+    // --- Start of Markdown Message Configuration ---
+    let formattedMessageBody = `Hello *${RECIPIENT_NAME}*!`;
+
+    // Example of dynamic response based on user's message
+    if (body && body.toLowerCase().includes("help")) {
+        formattedMessageBody += `\n\n_How can I assist you with your request?_`;
+        formattedMessageBody += `\n\nTry sending "info" or "status".`;
+    } else if (body && body.toLowerCase().includes("info")) {
+        formattedMessageBody += `\n\nHere is some ~important~ *information* for you:`;
+        formattedMessageBody += `\n\`\`\`This is a monospaced block of text.\`\`\``;
+    } else {
+        formattedMessageBody += `\n\nThanks for your message: _"${body}"_`;
+        formattedMessageBody += `\nWe'll get back to you shortly.`;
+    }
+
     const individualMessage = {
         messaging_product: "whatsapp",
         recipient_type: "individual",
         to: RECIPIENT_PHONE,
-        type: "text",
+        type: "text", // Keep type as 'text'
         text: {
-            preview_url: true,
-            body: "Hello from Node.js"
+            preview_url: true, // You can set this to false if you don't want URL previews
+            body: formattedMessageBody // Use the Markdown-formatted string here
         }
     };
+    // --- End of Markdown Message Configuration ---
 
     fetch(`https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`, {
         method: 'POST',
@@ -89,9 +106,16 @@ app.post('/', (req, res) => {
         },
         body: JSON.stringify(individualMessage)
     }).then((response) => {
-        console.log('messages received response: \n', response);
-
+        if (!response.ok) {
+            response.text().then(text => {
+                console.error('Error sending Markdown message:', response.status, text);
+            });
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        console.log('Markdown-formatted message sent successfully');
+        return response.json();
     })
+        .then(data => console.log('Response data:', data))
         .catch(error => console.error('Error:', error));
 
     res.status(200).end();
