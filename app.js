@@ -88,11 +88,11 @@ app.post('/', (req, res) => {
             'Authorization': `Bearer ${ACCESS_TOKEN}`
         },
         body: JSON.stringify(individualMessage)
-    })
-        .then(response => response.json())
-        .then(data => console.log('Response:', data))
-        .catch(error => console.error('Error:', error));
+    }).then((response) => {
+        console.log('messages received response: \n', response);
 
+    })
+        .catch(error => console.error('Error:', error));
 
     res.status(200).end();
 });
